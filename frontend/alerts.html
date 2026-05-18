@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alerts — GeoAnalytica</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<div class="app-shell">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/dashboard.html" class="ga-logo">
+        <div class="ga-logo-icon">G</div>
+        <div class="ga-logo-text"><span class="ga-logo-name">GeoAnalytica</span></div>
+      </a>
+      <nav class="breadcrumb" id="topbar-breadcrumb">
+        <a href="/dashboard.html" class="breadcrumb-link">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Alerts</span>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="dropdown">
+        <button class="btn btn-ghost btn-sm" id="topbar-user-btn">
+          <div class="user-avatar" id="topbar-avatar" style="width:24px;height:24px;font-size:10px">?</div>
+          <span id="topbar-user-name" style="font-size:var(--text-sm)">…</span>
+        </button>
+        <div class="dropdown-menu" id="topbar-dropdown">
+          <a href="/settings.html" class="dropdown-item">Settings</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item danger" id="topbar-logout">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav>
+      <div class="nav-section">
+        <a href="/dashboard.html" class="nav-item" data-page="dashboard.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="/alerts.html" class="nav-item active" data-page="alerts.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/></svg>
+          Alerts
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-section-label">Projects</span>
+        <div id="sidebar-projects"></div>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="/settings.html" class="nav-item" data-page="settings.html">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+        Settings
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Alerts</h1>
+        <p class="page-subtitle">Get notified when data crosses your defined thresholds</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" id="new-alert-btn">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+          New Alert
+        </button>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- How alerts work -->
+      <div class="notice notice-info" style="margin-bottom:var(--space-5)">
+        <span class="notice-icon">🔔</span>
+        <span class="notice-text">
+          Alerts are checked on your defined schedule (hourly / daily / weekly).
+          When a metric crosses your threshold, you'll receive an email and/or Slack notification.
+          Alerts are based on the latest data from your completed queries.
+        </span>
+      </div>
+
+      <!-- Alerts list -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Active Alerts</h2>
+          <span class="badge badge-muted" id="alert-count-badge">Loading…</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)" id="alerts-list">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <span>Loading alerts…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert history -->
+      <div class="section" style="margin-top:var(--space-8)">
+        <div class="section-header">
+          <h2 class="section-title">Alert History</h2>
+        </div>
+        <div class="card">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color)">
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Alert</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Triggered At</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Value</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Channels</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody id="alert-history-body">
+              <tr>
+                <td colspan="5" style="padding:24px;text-align:center;color:var(--text-muted);font-size:var(--text-sm)">
+                  No alert history yet
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- New Alert Modal -->
+<div class="modal-overlay" id="new-alert-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Create Alert</h3>
+      <button class="modal-close" data-modal-close>×</button>
+    </div>
+    <div class="modal-body">
+      <form id="new-alert-form">
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div class="form-group">
+            <label class="form-label">Alert Name <span class="required">*</span></label>
+            <input class="form-input" type="text" id="alert-name" placeholder="e.g. Zimbabwe Inflation Watch">
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Select Query <span class="required">*</span></label>
+              <select class="form-input form-select" id="alert-query-select">
+                <option value="">Loading completed queries…</option>
+              </select>
+              <div class="form-hint">Alert watches data from this query's results</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Entity (Country) <span class="required">*</span></label>
+              <input class="form-input" type="text" id="alert-entity" placeholder="e.g. Zimbabwe">
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="form-group">
+              <label class="form-label">Metric Field <span class="required">*</span></label>
+              <input class="form-input" type="text" id="alert-metric" placeholder="e.g. inflation_rate">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Condition</label>
+              <select class="form-input form-select" id="alert-operator">
+                <option value="gt">&gt; greater than</option>
+                <option value="lt">&lt; less than</option>
+                <option value="gte">&ge; at least</option>
+                <option value="lte">&le; at most</option>
+                <option value="eq">= equals</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Threshold Value <span class="required">*</span></label>
+              <input class="form-input" type="number" id="alert-threshold" placeholder="e.g. 50" step="any">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Check Frequency</label>
+            <select class="form-input form-select" id="alert-frequency">
+              <option value="hourly">Every hour</option>
+              <option value="6h">Every 6 hours</option>
+              <option value="daily" selected>Daily (6 AM UTC)</option>
+              <option value="weekly">Weekly (Monday)</option>
+            </select>
+          </div>
+
+          <div style="border-top:1px solid var(--border-color);padding-top:var(--space-4)">
+            <div style="font-size:var(--text-sm);font-weight:600;color:var(--text-secondary);margin-bottom:var(--space-3)">
+              Notification Channels
+            </div>
+            <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+              <div class="checkbox-wrapper">
+                <input type="checkbox" id="alert-email" checked>
+                <label class="checkbox-label" for="alert-email">
+                  📧 Email (sent to your registered email)
+                </label>
+              </div>
+              <div>
+                <div class="checkbox-wrapper">
+                  <input type="checkbox" id="alert-slack">
+                  <label class="checkbox-label" for="alert-slack">💬 Slack webhook</label>
+                </div>
+                <div style="margin-top:var(--space-2);margin-left:24px" id="slack-webhook-wrapper" hidden>
+                  <input class="form-input" type="url" id="alert-webhook" placeholder="https://hooks.slack.com/services/...">
+                  <div class="form-hint">Paste your Slack incoming webhook URL</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal-close>Cancel</button>
+      <button class="btn btn-primary" id="create-alert-btn" onclick="AlertsPage.createAlert()">
+        Create Alert
+      </button>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.js"></script>
+<script src="js/core/app.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/utils/format.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/components/confirm.js"></script>
+<script src="js/components/sidebar.js"></script>
+<script src="js/components/topbar.js"></script>
+<script src="js/pages/analysis.js"></script>
+<script>
+  // Show/hide Slack webhook input
+  document.getElementById('alert-slack')?.addEventListener('change', (e) => {
+    const wrapper = document.getElementById('slack-webhook-wrapper');
+    if (wrapper) wrapper.hidden = !e.target.checked;
+  });
+
+  // Update alert count badge after load
+  const origLoad = AlertsPage.loadAlerts.bind(AlertsPage);
+  AlertsPage.loadAlerts = async function() {
+    await origLoad();
+    const badge = document.getElementById('alert-count-badge');
+    const cards = document.querySelectorAll('.alert-card');
+    if (badge) badge.textContent = cards.length + ' alert' + (cards.length !== 1 ? 's' : '');
+  };
+</script>
+</body>
+</html>

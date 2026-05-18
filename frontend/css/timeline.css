@@ -1,0 +1,202 @@
+/* ============================================================
+   GeoAnalytica — Timeline Slider
+   ============================================================ */
+
+/* ── Timeline Container ──────────────────────────────────── */
+.timeline-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 400;
+  padding: var(--space-3) var(--space-5);
+  background: linear-gradient(to top, rgba(13,17,23,0.9) 0%, transparent 100%);
+}
+
+.timeline-inner {
+  background: rgba(22,27,34,0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Year Badge ──────────────────────────────────────────── */
+.timeline-year {
+  font-size: var(--text-lg);
+  font-weight: 800;
+  color: var(--accent-blue);
+  min-width: 52px;
+  text-align: center;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+/* ── Controls ────────────────────────────────────────────── */
+.timeline-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.timeline-btn {
+  width: 28px; height: 28px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  line-height: 1;
+}
+
+.timeline-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.timeline-btn.play-btn {
+  width: 32px; height: 32px;
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: #fff;
+}
+
+.timeline-btn.play-btn:hover {
+  background: var(--accent-blue-hover);
+  border-color: var(--accent-blue-hover);
+}
+
+/* ── Slider ──────────────────────────────────────────────── */
+.timeline-slider-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.timeline-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--radius-full);
+  background: var(--bg-elevated);
+  outline: none;
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(47,129,247,0.6);
+  border: 2px solid rgba(22,27,34,0.8);
+  transition: transform var(--transition);
+}
+
+.timeline-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.timeline-slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  cursor: pointer;
+  border: 2px solid rgba(22,27,34,0.8);
+}
+
+/* Year markers */
+.timeline-markers {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.timeline-marker {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.timeline-marker.active {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+/* ── Speed Control ───────────────────────────────────────── */
+.timeline-speed {
+  flex-shrink: 0;
+}
+
+.timeline-speed-select {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 3px 6px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  appearance: none;
+}
+
+.timeline-speed-select:focus { outline: none; }
+
+/* ── Playback animation indicator ───────────────────────── */
+.timeline-playing-indicator {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  animation: float-up 0.3s ease;
+  pointer-events: none;
+}
+
+@keyframes float-up {
+  from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Disabled state ──────────────────────────────────────── */
+.timeline-container.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.timeline-container.hidden { display: none; }
+
+/* Transition animation when year changes */
+.timeline-year.changing {
+  animation: year-flash 0.2s ease;
+}
+
+@keyframes year-flash {
+  0%   { color: var(--accent-blue); transform: scale(1); }
+  50%  { color: var(--accent-teal); transform: scale(1.1); }
+  100% { color: var(--accent-blue); transform: scale(1); }
+}

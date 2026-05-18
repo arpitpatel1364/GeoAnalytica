@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — GeoAnalytica</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/table.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/dashboard.html" class="ga-logo">
+        <div class="ga-logo-icon">G</div>
+        <div class="ga-logo-text">
+          <span class="ga-logo-name">GeoAnalytica</span>
+          <span class="ga-logo-tagline">Global data, decoded.</span>
+        </div>
+      </a>
+      <nav class="breadcrumb" id="topbar-breadcrumb">
+        <span class="breadcrumb-current">Dashboard</span>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm btn-icon notif-btn" id="topbar-notif" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/>
+        </svg>
+      </button>
+      <div class="dropdown">
+        <button class="btn btn-ghost btn-sm" id="topbar-user-btn" style="gap:var(--space-2)">
+          <div class="user-avatar" id="topbar-avatar" style="width:24px;height:24px;font-size:10px">?</div>
+          <span id="topbar-user-name" style="font-size:var(--text-sm)">Loading…</span>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+        </button>
+        <div class="dropdown-menu" id="topbar-dropdown">
+          <a href="/settings.html" class="dropdown-item">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+            Settings
+          </a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item danger" id="topbar-logout">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3H3a1 1 0 00-1 1v8a1 1 0 001 1h3M10 11l3-3-3-3M13 8H6"/></svg>
+            Sign out
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-user" id="sidebar-user">
+        <div class="user-avatar" id="sidebar-avatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="sidebar-user-name">Loading…</div>
+          <div class="user-tier" id="sidebar-user-tier">Free plan</div>
+        </div>
+      </div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <span class="nav-section-label">Workspace</span>
+        <a href="/dashboard.html" class="nav-item active" data-page="dashboard.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="/alerts.html" class="nav-item" data-page="alerts.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/></svg>
+          Alerts
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <span class="nav-section-label">Projects</span>
+        <div id="sidebar-projects">
+          <div style="padding:4px 12px;font-size:11px;color:var(--text-muted)">Loading…</div>
+        </div>
+        <button class="nav-item" onclick="Modal.open('new-project-modal')" style="color:var(--accent-blue)">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+          New Project
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <a href="/settings.html" class="nav-item" data-page="settings.html">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41M3.05 12.95l1.41-1.41M11.54 4.46l1.41-1.41"/></svg>
+        Settings
+      </a>
+      <button id="sidebar-theme-toggle" class="nav-item" title="Toggle theme">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="4"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.41 1.41M11.54 11.54l1.41 1.41"/></svg>
+        Toggle theme
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Dashboard</h1>
+        <p class="page-subtitle">Manage your projects and track query activity</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" id="new-project-btn">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+          New Project
+        </button>
+      </div>
+    </div>
+
+    <div class="page-body">
+      <!-- Stats row -->
+      <div class="stats-row" style="margin-bottom:var(--space-6)">
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/></svg>
+            Total Projects
+          </div>
+          <div class="stat-value" id="stat-projects">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+            Queries Today
+          </div>
+          <div class="stat-value" id="stat-queries">—</div>
+          <div class="stat-delta" id="queries-today-label" style="font-size:10px;color:var(--text-muted)"></div>
+          <div class="progress-bar" style="margin-top:6px">
+            <div class="progress-fill" id="queries-today-fill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="9" r="3"/><path d="M7.5 9H14l1-1-1-1h-2v2M12 9v2"/></svg>
+            API Keys Connected
+          </div>
+          <div class="stat-value" id="stat-api-keys">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/></svg>
+            Active Alerts
+          </div>
+          <div class="stat-value" id="stat-alerts">—</div>
+        </div>
+      </div>
+
+      <!-- Projects -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Projects</h2>
+        </div>
+        <div class="projects-grid" id="projects-grid">
+          <div class="loading-state" style="grid-column:1/-1">
+            <div class="spinner"></div>
+            <span>Loading projects…</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Queries -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Recent Queries</h2>
+          <a href="#" style="font-size:var(--text-sm);color:var(--accent-blue)">View all</a>
+        </div>
+        <div class="card">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border-color)">
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Query</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Status</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Duration</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Points</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Created</th>
+                <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.05em">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="recent-queries-body">
+              <tr>
+                <td colspan="6" style="padding:24px;text-align:center;color:var(--text-muted);font-size:var(--text-sm)">
+                  <div class="spinner" style="margin:0 auto 8px"></div>
+                  Loading queries…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- New Project Modal -->
+<div class="modal-overlay" id="new-project-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title">New Project</h3>
+      <button class="modal-close" data-modal-close>×</button>
+    </div>
+    <div class="modal-body">
+      <form id="new-project-form">
+        <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+          <div class="form-group">
+            <label class="form-label" for="project-name">Project name <span class="required">*</span></label>
+            <input class="form-input" type="text" id="project-name" placeholder="e.g. Economic Analysis Q1 2026" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="project-desc">Description</label>
+            <textarea class="form-input form-textarea" id="project-desc" placeholder="What will this project analyze?" rows="3"></textarea>
+          </div>
+          <div id="project-error" class="notice notice-error" hidden>
+            <span class="notice-text"></span>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal-close>Cancel</button>
+      <button class="btn btn-primary" id="create-project-btn" onclick="DashboardPage.createProject()">
+        Create Project
+      </button>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.js"></script>
+<script src="js/core/app.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/utils/format.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/components/confirm.js"></script>
+<script src="js/components/sidebar.js"></script>
+<script src="js/components/topbar.js"></script>
+<script src="js/pages/dashboard.js"></script>
+</body>
+</html>

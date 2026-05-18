@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create account — GeoAnalytica</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body { background: var(--bg-primary); }
+    .auth-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(57,211,83,0.06), transparent 70%);
+      pointer-events: none;
+    }
+    .auth-page { position: relative; z-index: 1; }
+    .auth-card { max-width: 440px; }
+  </style>
+</head>
+<body>
+<div class="auth-bg"></div>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <a href="/" class="ga-logo" style="justify-content:center;margin-bottom:var(--space-5)">
+        <div class="ga-logo-icon" style="width:36px;height:36px;font-size:18px;font-weight:900">G</div>
+        <div class="ga-logo-text">
+          <span class="ga-logo-name" style="font-size:var(--text-md)">GeoAnalytica</span>
+          <span class="ga-logo-tagline">Global data, decoded.</span>
+        </div>
+      </a>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Start analyzing global data for free. No credit card required.</p>
+    </div>
+
+    <form id="register-form" autocomplete="on">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+
+        <div class="form-group">
+          <label class="form-label" for="name">Full name <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="text"
+            id="name"
+            name="name"
+            placeholder="Jane Smith"
+            autocomplete="name"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email address <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <input
+              class="form-input has-icon-right"
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Min. 8 characters"
+              autocomplete="new-password"
+              required
+            >
+            <span class="input-icon-right" id="toggle-pass" style="cursor:pointer" title="Show/hide">👁</span>
+          </div>
+          <div class="password-strength" id="password-strength" style="display:none">
+            <div class="password-strength-bar">
+              <div class="password-strength-fill" id="strength-fill"></div>
+            </div>
+            <span class="password-strength-label" id="strength-label"></span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="confirm-password">Confirm password <span class="required">*</span></label>
+          <input
+            class="form-input"
+            type="password"
+            id="confirm-password"
+            name="confirm-password"
+            placeholder="Repeat password"
+            autocomplete="new-password"
+            required
+          >
+        </div>
+
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label class="checkbox-label" for="terms">
+            I agree to the
+            <a href="#" style="color:var(--accent-blue)">Terms of Service</a>
+            and
+            <a href="#" style="color:var(--accent-blue)">Privacy Policy</a>
+          </label>
+        </div>
+
+        <div id="register-error" class="notice notice-error" hidden>
+          <span class="notice-icon">✕</span>
+          <span class="notice-text"></span>
+        </div>
+
+        <div id="register-success" class="notice notice-success" hidden>
+          <span class="notice-icon">✓</span>
+          <span class="notice-text">Account created! Signing you in…</span>
+        </div>
+
+        <button type="submit" id="register-btn" class="btn btn-primary btn-full btn-lg">
+          Create free account
+        </button>
+      </div>
+    </form>
+
+    <p style="text-align:center;margin-top:var(--space-5);font-size:var(--text-sm);color:var(--text-muted)">
+      Already have an account?
+      <a href="/login.html" style="color:var(--accent-blue)">Sign in</a>
+    </p>
+  </div>
+</div>
+
+<script src="js/core/app.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/utils/format.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/pages/login.js"></script>
+<script>
+  // Password show/hide
+  document.getElementById('toggle-pass')?.addEventListener('click', () => {
+    const el = document.getElementById('password');
+    el.type = el.type === 'password' ? 'text' : 'password';
+  });
+
+  // Show strength meter on input
+  document.getElementById('password')?.addEventListener('input', () => {
+    const strengthEl = document.getElementById('password-strength');
+    if (strengthEl) strengthEl.style.display = 'block';
+  });
+
+  document.addEventListener('DOMContentLoaded', () => RegisterPage.init());
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in — GeoAnalytica</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body { background: var(--bg-primary); }
+    .auth-bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(47,129,247,0.08), transparent 70%);
+      pointer-events: none;
+    }
+    .auth-page { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+<div class="auth-bg"></div>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-card-header">
+      <a href="/" class="ga-logo" style="justify-content:center;margin-bottom:var(--space-5)">
+        <div class="ga-logo-icon" style="width:36px;height:36px;font-size:18px;font-weight:900">G</div>
+        <div class="ga-logo-text">
+          <span class="ga-logo-name" style="font-size:var(--text-md)">GeoAnalytica</span>
+          <span class="ga-logo-tagline">Global data, decoded.</span>
+        </div>
+      </a>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to your account to continue</p>
+    </div>
+
+    <form id="login-form" autocomplete="on">
+      <div style="display:flex;flex-direction:column;gap:var(--space-4)">
+        <div class="form-group">
+          <label class="form-label" for="email">Email address</label>
+          <input
+            class="form-input"
+            type="email"
+            id="email"
+            name="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">
+            Password
+            <a href="#" style="margin-left:auto;font-size:var(--text-xs);color:var(--accent-blue)">Forgot password?</a>
+          </label>
+          <div class="input-wrapper">
+            <input
+              class="form-input has-icon-right"
+              type="password"
+              id="password"
+              name="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            >
+            <span class="input-icon-right" id="toggle-password" style="cursor:pointer;user-select:none;" title="Show/hide password">
+              👁
+            </span>
+          </div>
+        </div>
+
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="remember-me" name="remember">
+          <label class="checkbox-label" for="remember-me">Keep me signed in</label>
+        </div>
+
+        <div id="login-error" class="notice notice-error" hidden>
+          <span class="notice-icon">✕</span>
+          <span class="notice-text" id="login-error-text">Invalid email or password.</span>
+        </div>
+
+        <button type="submit" id="login-btn" class="btn btn-primary btn-full btn-lg">
+          Sign in
+        </button>
+      </div>
+    </form>
+
+    <div class="divider-text" style="margin:var(--space-5) 0">or</div>
+
+    <button id="demo-login-btn" class="btn btn-secondary btn-full">
+      Try demo (no account needed)
+    </button>
+
+    <p style="text-align:center;margin-top:var(--space-5);font-size:var(--text-sm);color:var(--text-muted)">
+      Don't have an account?
+      <a href="/register.html" style="color:var(--accent-blue)">Create one free</a>
+    </p>
+  </div>
+</div>
+
+<script src="js/core/app.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/utils/format.js"></script>
+<script src="js/pages/login.js"></script>
+<script>
+  // Password show/hide toggle
+  document.getElementById('toggle-password')?.addEventListener('click', () => {
+    const input = document.getElementById('password');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  });
+
+  // Override login error display
+  const origLogin = Auth.login.bind(Auth);
+  LoginPage._submit = async function(btn, errEl, redirect) {
+    const email    = document.getElementById('email')?.value?.trim();
+    const password = document.getElementById('password')?.value;
+    if (!email || !password) {
+      document.getElementById('login-error').hidden = false;
+      document.getElementById('login-error-text').textContent = 'Please enter email and password.';
+      return;
+    }
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner spinner-sm"></span> Signing in\u2026'; }
+    document.getElementById('login-error').hidden = true;
+    try {
+      await Auth.login(email, password);
+    } catch (err) {
+      document.getElementById('login-error').hidden = false;
+      document.getElementById('login-error-text').textContent = err.message || 'Login failed.';
+      if (btn) { btn.disabled = false; btn.textContent = 'Sign in'; }
+    }
+  };
+</script>
+</body>
+</html>

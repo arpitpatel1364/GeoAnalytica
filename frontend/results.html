@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results — GeoAnalytica</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/results.css">
+  <link rel="stylesheet" href="css/table.css">
+  <link rel="stylesheet" href="css/timeline.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/6.2.1/css/tabulator_midnight.min.css">
+</head>
+<body>
+<div class="app-shell">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/dashboard.html" class="ga-logo">
+        <div class="ga-logo-icon">G</div>
+        <div class="ga-logo-text"><span class="ga-logo-name">GeoAnalytica</span></div>
+      </a>
+      <nav class="breadcrumb" id="topbar-breadcrumb">
+        <a href="/dashboard.html" class="breadcrumb-link">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Results</span>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="dropdown">
+        <button class="btn btn-ghost btn-sm" id="topbar-user-btn">
+          <div class="user-avatar" id="topbar-avatar" style="width:24px;height:24px;font-size:10px">?</div>
+          <span id="topbar-user-name" style="font-size:var(--text-sm)">…</span>
+        </button>
+        <div class="dropdown-menu" id="topbar-dropdown">
+          <a href="/settings.html" class="dropdown-item">Settings</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item danger" id="topbar-logout">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav>
+      <div class="nav-section">
+        <a href="/dashboard.html" class="nav-item" data-page="dashboard.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="/alerts.html" class="nav-item" data-page="alerts.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/></svg>
+          Alerts
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-section-label">Projects</span>
+        <div id="sidebar-projects"></div>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="/settings.html" class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+        Settings
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main-content">
+    <!-- Results header -->
+    <div class="results-page-header">
+      <div>
+        <div class="results-query-text" id="result-query-text">Loading results…</div>
+        <div class="results-meta">
+          <span id="result-meta-points">—</span>
+          <span class="results-meta-sep"></span>
+          <span id="result-meta-date">—</span>
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" id="rerun-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 3a6 6 0 11-6 6"/><path d="M10 3h3V0"/></svg>
+          Re-run
+        </button>
+        <button class="btn btn-secondary btn-sm" id="share-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="3" r="2"/><circle cx="4" cy="8" r="2"/><circle cx="12" cy="13" r="2"/><path d="M6 7l4-3M6 9l4 3"/></svg>
+          Share
+        </button>
+        <button class="btn btn-primary btn-sm" id="export-btn">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 10V2M4 6l4 4 4-4M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+          Export
+        </button>
+      </div>
+    </div>
+
+    <!-- Dashboard grid -->
+    <div class="dashboard-grid" id="results-dashboard">
+
+      <!-- Panel 1: Map -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="chart-title">World Map</div>
+          <div class="panel-toolbar">
+            <select id="map-field-select" style="font-size:11px;padding:3px 20px 3px 6px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:4px;color:var(--text-secondary);appearance:none">
+              <option>Loading…</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div class="result-map-wrapper" style="height:380px;border-radius:0">
+            <div id="result-map" style="width:100%;height:100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Bar chart -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="chart-title">Country Rankings</div>
+          <div class="panel-toolbar">
+            <span style="font-size:11px;color:var(--text-muted)">Top 20 by avg value</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-wrapper" style="height:380px">
+            <canvas id="bar-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Line chart -->
+      <div class="dashboard-panel">
+        <div class="panel-header">
+          <div class="chart-title">Trends Over Time</div>
+          <div class="panel-toolbar">
+            <span style="font-size:11px;color:var(--text-muted)">Top 5 countries</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-wrapper" style="height:300px">
+            <canvas id="line-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Scatter -->
+      <div class="dashboard-panel" id="scatter-panel">
+        <div class="panel-header">
+          <div class="chart-title">Correlation Analysis</div>
+        </div>
+        <div class="panel-body">
+          <div class="chart-wrapper" style="height:300px">
+            <canvas id="scatter-chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 5: Data Table (full width) -->
+      <div class="dashboard-panel full-width">
+        <div class="panel-header">
+          <div class="chart-title">Full Data Table</div>
+          <div class="panel-toolbar">
+            <button class="btn btn-ghost btn-xs" onclick="DataTable.downloadCSV('geoanalytica_export')">
+              ↓ CSV
+            </button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding:0">
+          <div id="data-table"></div>
+        </div>
+      </div>
+
+      <!-- Panel 6: AI Summary (full width) -->
+      <div class="dashboard-panel full-width">
+        <div class="panel-header">
+          <div class="chart-title" style="display:flex;align-items:center;gap:8px">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+            AI Analysis Summary
+          </div>
+          <span class="badge badge-blue" style="font-size:10px">Claude</span>
+        </div>
+        <div id="ai-summary-panel"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="export-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title">Export Results</h3>
+      <button class="modal-close" data-modal-close>×</button>
+    </div>
+    <div class="modal-body">
+      <div class="export-cards">
+        <a href="#" class="export-card" data-export-format="csv">
+          <span class="export-card-icon">📄</span>
+          <span class="export-card-name">CSV</span>
+          <span class="export-card-desc">Flat table, all data points</span>
+        </a>
+        <a href="#" class="export-card" data-export-format="xlsx">
+          <span class="export-card-icon">📊</span>
+          <span class="export-card-name">Excel</span>
+          <span class="export-card-desc">5 sheets: Raw, Stats, Outliers, Trends, Metadata</span>
+        </a>
+        <a href="#" class="export-card" data-export-format="pdf">
+          <span class="export-card-icon">📑</span>
+          <span class="export-card-name">PDF Report</span>
+          <span class="export-card-desc">Professional report with charts and AI summary</span>
+        </a>
+        <a href="#" class="export-card" data-export-format="json">
+          <span class="export-card-icon">{ }</span>
+          <span class="export-card-name">JSON</span>
+          <span class="export-card-desc">Complete result including GeoJSON</span>
+        </a>
+      </div>
+
+      <div class="divider"></div>
+      <h4 style="font-size:var(--text-sm);font-weight:600;margin-bottom:var(--space-4)">Schedule Recurring Export</h4>
+      <form id="schedule-export-form">
+        <div class="grid-3" style="gap:var(--space-3)">
+          <div class="form-group">
+            <label class="form-label">Frequency</label>
+            <select class="form-input form-select" id="schedule-freq">
+              <option value="daily">Daily</option>
+              <option value="weekly" selected>Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Format</label>
+            <select class="form-input form-select" id="schedule-format">
+              <option value="csv">CSV</option>
+              <option value="xlsx">Excel</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" type="email" id="schedule-email" placeholder="you@example.com">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm" style="margin-top:var(--space-3)">Set up schedule</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/6.2.1/js/tabulator.min.js"></script>
+<script src="js/core/app.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/utils/format.js"></script>
+<script src="js/utils/color.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/components/confirm.js"></script>
+<script src="js/components/sidebar.js"></script>
+<script src="js/components/topbar.js"></script>
+<script src="js/map/worldmap.js"></script>
+<script src="js/map/choropleth.js"></script>
+<script src="js/map/popup.js"></script>
+<script src="js/map/timeline.js"></script>
+<script src="js/results/charts.js"></script>
+<script src="js/results/table.js"></script>
+<script src="js/results/summary.js"></script>
+<script src="js/results/geojson.js"></script>
+<script src="js/results/dashboard.js"></script>
+<script src="js/pages/analysis.js"></script>
+</body>
+</html>

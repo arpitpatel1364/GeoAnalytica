@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analysis — GeoAnalytica</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/query.css">
+  <link rel="stylesheet" href="css/results.css">
+  <link rel="stylesheet" href="css/timeline.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="/dashboard.html" class="ga-logo">
+        <div class="ga-logo-icon">G</div>
+        <div class="ga-logo-text">
+          <span class="ga-logo-name">GeoAnalytica</span>
+        </div>
+      </a>
+      <nav class="breadcrumb" id="topbar-breadcrumb">
+        <a href="/dashboard.html" class="breadcrumb-link">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Analysis</span>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="dropdown">
+        <button class="btn btn-ghost btn-sm" id="topbar-user-btn">
+          <div class="user-avatar" id="topbar-avatar" style="width:24px;height:24px;font-size:10px">?</div>
+          <span id="topbar-user-name" style="font-size:var(--text-sm)">…</span>
+        </button>
+        <div class="dropdown-menu" id="topbar-dropdown">
+          <a href="/settings.html" class="dropdown-item">Settings</a>
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item danger" id="topbar-logout">Sign out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <nav>
+      <div class="nav-section">
+        <span class="nav-section-label">Workspace</span>
+        <a href="/dashboard.html" class="nav-item" data-page="dashboard.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+          Dashboard
+        </a>
+        <a href="/alerts.html" class="nav-item" data-page="alerts.html">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/></svg>
+          Alerts
+        </a>
+      </div>
+      <div class="nav-section">
+        <span class="nav-section-label">Projects</span>
+        <div id="sidebar-projects"></div>
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <a href="/settings.html" class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+        Settings
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN — 3-column analysis layout -->
+  <main class="main-content" style="overflow:hidden;padding:0">
+    <div class="analysis-layout">
+
+      <!-- LEFT: Query Builder -->
+      <div class="query-panel">
+        <div class="query-panel-header">
+          <div class="query-panel-title">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/></svg>
+            Query Builder
+          </div>
+          <div class="mode-toggle">
+            <button class="mode-btn active" data-mode="nl">NL</button>
+            <button class="mode-btn" data-mode="structured">Form</button>
+            <button class="mode-btn" data-mode="fields">Fields</button>
+          </div>
+        </div>
+
+        <!-- Mode 1: Natural Language -->
+        <div class="mode-panel" data-mode="nl">
+          <div class="form-group">
+            <div class="nl-textarea-wrapper">
+              <textarea
+                class="form-input form-textarea nl-textarea"
+                id="nl-instruction"
+                placeholder="Describe what you want to analyze…&#10;&#10;e.g. Show me inflation and unemployment for all African countries from 2015 to 2023 where average inflation exceeded 5%"
+                rows="5"
+              ></textarea>
+            </div>
+            <div class="nl-char-count"><span id="char-count">0 chars</span></div>
+          </div>
+
+          <div class="examples-section">
+            <button class="examples-toggle" id="examples-toggle">
+              <svg viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l5 5 5-5"/></svg>
+              Example queries
+            </button>
+            <div class="examples-chips" id="examples-chips" style="display:none">
+              <span class="example-chip">Inflation and GDP for G20, 2015–2023</span>
+              <span class="example-chip">Unemployment in Africa where avg > 10%</span>
+              <span class="example-chip">Climate data for Southeast Asia</span>
+              <span class="example-chip">Political stability index Middle East</span>
+              <span class="example-chip">Trade balance for BRICS countries</span>
+              <span class="example-chip">Life expectancy vs GDP per capita</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mode 2: Structured Form -->
+        <div class="mode-panel" data-mode="structured" hidden>
+          <!-- Fields -->
+          <div class="query-section">
+            <span class="query-section-label">Fields to analyze</span>
+            <div class="field-search">
+              <input class="field-search-input" type="text" id="field-search" placeholder="Search fields…">
+              <span class="field-search-icon">🔍</span>
+            </div>
+            <div class="field-category">
+              <span class="field-category-label">Economic</span>
+              <div class="field-list">
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="gdp_per_capita"><span class="field-item-name">GDP per Capita</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="gdp_growth_rate"><span class="field-item-name">GDP Growth Rate</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="inflation_rate"><span class="field-item-name">Inflation Rate</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="unemployment_rate"><span class="field-item-name">Unemployment Rate</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="government_debt_pct_gdp"><span class="field-item-name">Government Debt % GDP</span><span class="field-item-source field-source-free">IMF</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="current_account_balance_pct_gdp"><span class="field-item-name">Current Account Balance</span><span class="field-item-source field-source-free">IMF</span></label>
+              </div>
+            </div>
+            <div class="field-category">
+              <span class="field-category-label">Demographic</span>
+              <div class="field-list">
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="population"><span class="field-item-name">Population</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="life_expectancy"><span class="field-item-name">Life Expectancy</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="hdi_index"><span class="field-item-name">HDI Index</span><span class="field-item-source field-source-free">WB</span></label>
+              </div>
+            </div>
+            <div class="field-category">
+              <span class="field-category-label">Climate</span>
+              <div class="field-list">
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="co2_emissions_per_capita"><span class="field-item-name">CO₂ Emissions</span><span class="field-item-source field-source-free">WB</span></label>
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="renewable_energy_share"><span class="field-item-name">Renewable Energy %</span><span class="field-item-source field-source-free">WB</span></label>
+              </div>
+            </div>
+            <div class="field-category">
+              <span class="field-category-label">Governance</span>
+              <div class="field-list">
+                <label class="field-item"><input type="checkbox" class="field-checkbox" value="political_stability_index"><span class="field-item-name">Political Stability Index</span><span class="field-item-source field-source-free">WB</span></label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Geography -->
+          <div class="query-section">
+            <span class="query-section-label">Geographic scope</span>
+            <div class="scope-presets">
+              <button class="scope-btn active" data-scope="world">World</button>
+              <button class="scope-btn" data-scope="g7">G7</button>
+              <button class="scope-btn" data-scope="g20">G20</button>
+              <button class="scope-btn" data-scope="brics">BRICS</button>
+              <button class="scope-btn" data-scope="eu">EU</button>
+              <button class="scope-btn" data-scope="africa">Africa</button>
+              <button class="scope-btn" data-scope="asia">Asia</button>
+              <button class="scope-btn" data-scope="sea">SE Asia</button>
+              <button class="scope-btn" data-scope="middle_east">Middle East</button>
+              <button class="scope-btn" data-scope="americas">Americas</button>
+              <button class="scope-btn" data-scope="custom">Custom</button>
+            </div>
+            <div class="custom-entities-input" id="custom-entities-input">
+              <input class="form-input" type="text" id="custom-entities" placeholder="e.g. Brazil, India, China, Germany">
+              <div class="form-hint">Comma-separated country names</div>
+            </div>
+          </div>
+
+          <!-- Time Range -->
+          <div class="query-section">
+            <span class="query-section-label">Time range</span>
+            <div class="year-range-row">
+              <div class="form-group">
+                <label class="form-label">Start Year</label>
+                <input class="form-input" type="number" id="time-start" value="2015" min="1960" max="2025">
+              </div>
+              <div class="form-group">
+                <label class="form-label">End Year</label>
+                <input class="form-input" type="number" id="time-end" value="2023" min="1960" max="2025">
+              </div>
+            </div>
+            <div class="granularity-toggle" style="margin-top:var(--space-3)">
+              <button class="granularity-btn active" data-granularity="annual">Annual</button>
+              <button class="granularity-btn" data-granularity="quarterly">Quarterly</button>
+              <button class="granularity-btn" data-granularity="monthly">Monthly</button>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="query-section">
+            <span class="query-section-label">Filters</span>
+            <div class="filters-container" id="filters-container"></div>
+            <button class="btn btn-ghost btn-sm" id="add-filter-btn" style="margin-top:var(--space-2)">
+              + Add filter
+            </button>
+          </div>
+        </div>
+
+        <!-- Mode 3: Field Picker (cards) -->
+        <div class="mode-panel" data-mode="fields" hidden>
+          <div style="padding:var(--space-3) 0;color:var(--text-muted);font-size:var(--text-xs);text-align:center">
+            Select fields to include in your analysis
+          </div>
+          <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+            <!-- Reuses field list from Mode 2 -->
+            <div class="notice notice-info">
+              <span class="notice-icon">ℹ</span>
+              <span class="notice-text">Switch to the Form tab to select fields and scope.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="query-panel-footer">
+          <div id="query-preview-card" class="query-preview-card" hidden></div>
+          <div class="free-tier-notice">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L14 13H2L8 2z"/><path d="M8 7v3M8 11.5v.5"/></svg>
+            Free Tier · Data fetched from public sources
+          </div>
+          <button class="btn btn-ghost btn-sm" id="preview-btn" style="width:100%">Preview query</button>
+          <button class="btn btn-primary btn-lg" id="run-query-btn" style="width:100%;font-size:var(--text-base)">
+            ▶ Run Analysis
+          </button>
+        </div>
+      </div>
+
+      <!-- CENTER: Map -->
+      <div class="map-panel">
+        <div id="world-map" style="width:100%;height:100%"></div>
+
+        <!-- Map Controls overlay -->
+        <div class="map-controls">
+          <div class="map-control-card">
+            <span class="map-control-label">Metric</span>
+            <select class="map-control-select" id="metric-select">
+              <option value="">— Run a query first —</option>
+            </select>
+          </div>
+          <div class="map-control-card">
+            <span class="map-control-label">Opacity</span>
+            <input type="range" class="map-opacity-slider" id="opacity-slider" min="0.1" max="1" step="0.1" value="0.8">
+          </div>
+        </div>
+
+        <!-- Map Legend -->
+        <div class="map-legend" id="map-legend">
+          <div class="legend-title"><span>No data</span></div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Run a query to see data</div>
+        </div>
+
+        <!-- Floating tooltip -->
+        <div id="map-tooltip" class="map-tooltip" style="display:none;position:fixed;z-index:500">
+          <div class="tooltip-country"></div>
+          <div class="tooltip-value"></div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="timeline-container hidden" id="timeline-container"></div>
+
+        <!-- Progress overlay -->
+        <div id="query-progress" class="query-progress-overlay" hidden>
+          <div class="query-progress-card">
+            <div class="progress-header">
+              <div class="spinner"></div>
+              <div>
+                <div class="progress-title">Analyzing…</div>
+                <div class="progress-subtitle" id="progress-message">Starting…</div>
+              </div>
+            </div>
+            <div class="progress-bar-wrapper">
+              <div class="progress-bar-label">
+                <span>Progress</span>
+                <span id="progress-pct">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill animated" id="progress-bar-fill" style="width:0%"></div>
+              </div>
+            </div>
+            <div class="progress-stages" id="progress-stages"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results Panel -->
+      <div class="results-panel" id="results-panel" hidden>
+        <div class="results-panel-header">
+          <span class="results-panel-title">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12l3-4 3 2 3-5 3 3"/><path d="M2 14h12"/></svg>
+            Results
+          </span>
+          <a href="#" class="btn btn-ghost btn-xs" id="rp-view-full">Full dashboard →</a>
+        </div>
+        <div class="results-panel-body">
+
+          <!-- AI Summary -->
+          <div class="results-section">
+            <div class="results-section-title">AI Summary</div>
+            <div id="rp-summary" style="font-size:var(--text-xs);color:var(--text-secondary);line-height:1.6;">—</div>
+          </div>
+
+          <!-- Quick metrics -->
+          <div class="results-section">
+            <div class="results-section-title">Overview</div>
+            <div class="quick-metrics">
+              <div class="quick-metric">
+                <span class="quick-metric-value" id="rp-total-points">—</span>
+                <span class="quick-metric-label">Data points</span>
+              </div>
+              <div class="quick-metric">
+                <span class="quick-metric-value" id="rp-countries">—</span>
+                <span class="quick-metric-label">Countries</span>
+              </div>
+              <div class="quick-metric">
+                <span class="quick-metric-value" id="rp-null-rate">—</span>
+                <span class="quick-metric-label">Null rate</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Source donut -->
+          <div class="results-section">
+            <div class="results-section-title">Data Sources</div>
+            <div style="height:80px;position:relative">
+              <canvas id="source-donut"></canvas>
+            </div>
+          </div>
+
+          <!-- Top 10 -->
+          <div class="results-section">
+            <div class="results-section-title">Top Countries</div>
+            <div class="ranking-list" id="rp-rankings"></div>
+          </div>
+
+          <!-- Outliers -->
+          <div class="results-section">
+            <div class="results-section-title">Outliers</div>
+            <div class="outlier-list" id="rp-outliers"></div>
+          </div>
+        </div>
+
+        <!-- Export quick actions -->
+        <div class="export-quick-actions">
+          <a class="export-btn" data-format="csv" href="#" id="export-csv">
+            <span class="export-btn-icon">📄</span>
+            <span class="export-btn-label">CSV</span>
+          </a>
+          <a class="export-btn" data-format="xlsx" href="#" id="export-xlsx">
+            <span class="export-btn-icon">📊</span>
+            <span class="export-btn-label">Excel</span>
+          </a>
+          <a class="export-btn" data-format="pdf" href="#" id="export-pdf">
+            <span class="export-btn-icon">📑</span>
+            <span class="export-btn-label">PDF</span>
+          </a>
+          <a class="export-btn" data-format="json" href="#" id="export-json">
+            <span class="export-btn-icon">{ }</span>
+            <span class="export-btn-label">JSON</span>
+          </a>
+        </div>
+      </div>
+
+    </div><!-- end analysis-layout -->
+  </main>
+</div><!-- end app-shell -->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/notyf/3.10.0/notyf.min.js"></script>
+<script src="js/core/app.js"></script>
+<script src="js/core/api.js"></script>
+<script src="js/core/auth.js"></script>
+<script src="js/core/ws.js"></script>
+<script src="js/utils/format.js"></script>
+<script src="js/utils/color.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/toast.js"></script>
+<script src="js/components/confirm.js"></script>
+<script src="js/components/sidebar.js"></script>
+<script src="js/components/topbar.js"></script>
+<script src="js/map/worldmap.js"></script>
+<script src="js/map/choropleth.js"></script>
+<script src="js/map/popup.js"></script>
+<script src="js/map/timeline.js"></script>
+<script src="js/query/nlp-input.js"></script>
+<script src="js/query/field-picker.js"></script>
+<script src="js/query/filter.js"></script>
+<script src="js/query/preview.js"></script>
+<script src="js/query/progress.js"></script>
+<script src="js/query/builder.js"></script>
+<script src="js/results/charts.js"></script>
+<script src="js/results/summary.js"></script>
+<script src="js/results/geojson.js"></script>
+<script src="js/results/dashboard.js"></script>
+<script src="js/pages/analysis.js"></script>
+<script>
+  // Wire percent display to progress bar updates
+  const origUpdate = Progress.update.bind(Progress);
+  Progress.update = function(msg) {
+    origUpdate(msg);
+    const pctEl = document.getElementById('progress-pct');
+    if (pctEl && msg.percent !== undefined) pctEl.textContent = msg.percent + '%';
+  };
+</script>
+</body>
+</html>
