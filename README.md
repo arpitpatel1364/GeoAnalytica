@@ -447,4 +447,4 @@ MIT License — see LICENSE file for details.
 
 ---
 
-*Built with love and Claude — GeoAnalytica, 2026*
+*Built with love and chai — GeoAnalytica, 2026*
