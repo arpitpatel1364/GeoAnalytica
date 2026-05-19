@@ -98,6 +98,7 @@ async def check_query_limit(
             current_user.queries_today = 0
             current_user.queries_today_reset_at = now
     else:
+        current_user.queries_today = 0
         current_user.queries_today_reset_at = now
 
     if current_user.queries_today >= daily_limit:

@@ -779,7 +779,11 @@ class WebIntelligenceEngine:
             if len(cached_pts) == len(intent_years):
                 done += 1
                 if progress_callback:
-                    await progress_callback(entity["name"], field_name, done, total)
+                    latest_val = None
+                    valid_pts = [p for p in cached_pts if p.value is not None]
+                    if valid_pts:
+                        latest_val = sorted(valid_pts, key=lambda x: str(x.timestamp))[-1].value
+                    await progress_callback(entity["name"], field_name, done, total, latest_value=latest_val)
                 return cached_pts
 
             # Try World Bank API first (free, most reliable)
@@ -823,7 +827,11 @@ class WebIntelligenceEngine:
             done += 1
             if progress_callback:
                 try:
-                    await progress_callback(entity["name"], field_name, done, total)
+                    latest_val = None
+                    valid_pts = [p for p in pts if p.value is not None]
+                    if valid_pts:
+                        latest_val = sorted(valid_pts, key=lambda x: str(x.timestamp))[-1].value
+                    await progress_callback(entity["name"], field_name, done, total, latest_value=latest_val)
                 except Exception:
                     pass
 

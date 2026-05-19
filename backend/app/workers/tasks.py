@@ -156,26 +156,36 @@ async def _run_query_pipeline(query_id: str):
             done_count = 0
             total_fetch = len(entities) * len(routed_fields)
 
-            async def progress_cb(entity_name, field, done, total):
+            async def progress_cb(entity_name, field, done, total, latest_value=None):
                 nonlocal done_count
                 done_count = done
                 percent = 22 + int((done_count / max(total_fetch, 1)) * 43)  # 22-65%
 
                 # Broadcast country data point for live map coloring
-                entity_pts = [
-                    p for p in all_normalized
-                    if p.entity_name == entity_name and p.field_name == field and not p.is_null
-                ]
-                if entity_pts:
-                    latest = entity_pts[-1]
+                if latest_value is not None:
                     iso2 = entity_meta.get(entity_name, {}).get("iso2", "")
-                    if iso2 and latest.field_value is not None:
+                    if iso2:
                         await manager.send(query_id, {
                             "type": "country_data",
                             "country_code": iso2,
-                            "value": latest.field_value,
+                            "value": latest_value,
                             "field": field,
                         })
+                else:
+                    entity_pts = [
+                        p for p in all_normalized
+                        if p.entity_name == entity_name and p.field_name == field and not p.is_null
+                    ]
+                    if entity_pts:
+                        latest = entity_pts[-1]
+                        iso2 = entity_meta.get(entity_name, {}).get("iso2", "")
+                        if iso2 and latest.field_value is not None:
+                            await manager.send(query_id, {
+                                "type": "country_data",
+                                "country_code": iso2,
+                                "value": latest.field_value,
+                                "field": field,
+                            })
 
                 await manager.send(query_id, {
                     "type": "progress", "stage": "fetching",

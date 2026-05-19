@@ -94,9 +94,11 @@ const AnalysisPage = {
         GeoAnalytica.state.currentResult = result;
         ResultsPanel.render(result);
 
-        const primary = [...new Set(result.data_points.map(p => p.field_name))][0];
-        const pts = result.data_points.filter(p => p.field_name === primary);
-        Choropleth.render(pts, primary);
+        if (result.data_points && result.data_points.length > 0) {
+          const primary = [...new Set(result.data_points.map(p => p.field_name))][0];
+          const pts = result.data_points.filter(p => p.field_name === primary);
+          Choropleth.render(pts, primary);
+        }
 
         const years = [...new Set(result.data_points.map(p => p.timestamp.slice(0, 4)))].sort();
         Timeline.init('timeline-container', years, result.data_points);
