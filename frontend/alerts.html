@@ -84,7 +84,7 @@
     <div class="page-body">
       <!-- How alerts work -->
       <div class="notice notice-info" style="margin-bottom:var(--space-5)">
-        <span class="notice-icon">🔔</span>
+        <span class="notice-icon" style="display:inline-block;width:16px;height:16px;vertical-align:middle;margin-right:8px"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1a5 5 0 015 5v3l1.5 2.5H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/></svg></span>
         <span class="notice-text">
           Alerts are checked on your defined schedule (hourly / daily / weekly).
           When a metric crosses your threshold, you'll receive an email and/or Slack notification.
@@ -204,13 +204,13 @@
               <div class="checkbox-wrapper">
                 <input type="checkbox" id="alert-email" checked>
                 <label class="checkbox-label" for="alert-email">
-                  📧 Email (sent to your registered email)
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M2 3h12v10H2zm0 1l6 4.5L14 4"/></svg> Email (sent to your registered email)
                 </label>
               </div>
               <div>
                 <div class="checkbox-wrapper">
                   <input type="checkbox" id="alert-slack">
-                  <label class="checkbox-label" for="alert-slack">💬 Slack webhook</label>
+                  <label class="checkbox-label" for="alert-slack"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="width:14px;height:14px;vertical-align:middle;margin-right:4px"><path d="M2 4h12v8H7l-4 3v-3H2V4z"/></svg> Slack webhook</label>
                 </div>
                 <div style="margin-top:var(--space-2);margin-left:24px" id="slack-webhook-wrapper" hidden>
                   <input class="form-input" type="url" id="alert-webhook" placeholder="https://hooks.slack.com/services/...">

@@ -318,15 +318,15 @@ const SettingsPage = {
     if (!container) return;
 
     const services = [
-      { id: 'world_bank',    name: 'World Bank',      icon: '🌍', desc: 'GDP, inflation, demographics — full history to 1960', free: true,  keyUrl: null },
-      { id: 'imf',           name: 'IMF',             icon: '💹', desc: 'Macroeconomic datasets — WEO, IFS, DOTS', free: true,  keyUrl: null },
-      { id: 'open_meteo',    name: 'Open-Meteo',      icon: '🌤', desc: 'Historical weather and climate data', free: true,  keyUrl: null },
-      { id: 'rest_countries',name: 'REST Countries',  icon: '🗺', desc: 'Country metadata, flags, coordinates', free: true,  keyUrl: null },
-      { id: 'alpha_vantage', name: 'Alpha Vantage',   icon: '📈', desc: 'Stock prices, forex, economic indicators', free: false, keyUrl: 'https://www.alphavantage.co/support/#api-key' },
-      { id: 'newsapi',       name: 'NewsAPI',         icon: '📰', desc: '70,000+ news sources, full-text search', free: false, keyUrl: 'https://newsapi.org/register' },
-      { id: 'brave_search',  name: 'Brave Search',    icon: '🔍', desc: 'Improves web scraping quality', free: false, keyUrl: 'https://brave.com/search/api/' },
-      { id: 'openweathermap',name: 'OpenWeatherMap',  icon: '⛅', desc: 'Current weather, forecasts, historical', free: false, keyUrl: 'https://openweathermap.org/api' },
-      { id: 'mapbox',        name: 'Mapbox',          icon: '🗾', desc: 'Premium map tiles, geocoding', free: false, keyUrl: 'https://account.mapbox.com/' },
+      { id: 'world_bank',    name: 'World Bank',      icon: window.GeoAnalytica?.icon?.globe || 'WB', desc: 'GDP, inflation, demographics — full history to 1960', free: true,  keyUrl: null },
+      { id: 'imf',           name: 'IMF',             icon: window.GeoAnalytica?.icon?.chart || 'IMF', desc: 'Macroeconomic datasets — WEO, IFS, DOTS', free: true,  keyUrl: null },
+      { id: 'open_meteo',    name: 'Open-Meteo',      icon: window.GeoAnalytica?.icon?.ai || 'OM', desc: 'Historical weather and climate data', free: true,  keyUrl: null },
+      { id: 'rest_countries',name: 'REST Countries',  icon: window.GeoAnalytica?.icon?.map || 'RC', desc: 'Country metadata, flags, coordinates', free: true,  keyUrl: null },
+      { id: 'alpha_vantage', name: 'Alpha Vantage',   icon: window.GeoAnalytica?.icon?.chart || 'AV', desc: 'Stock prices, forex, economic indicators', free: false, keyUrl: 'https://www.alphavantage.co/support/#api-key' },
+      { id: 'newsapi',       name: 'NewsAPI',         icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h12v12H2V2zm2 3h8M4 8h8M4 11h5"/></svg>`, desc: '70,000+ news sources, full-text search', free: false, keyUrl: 'https://newsapi.org/register' },
+      { id: 'brave_search',  name: 'Brave Search',    icon: window.GeoAnalytica?.icon?.search || 'BS', desc: 'Improves web scraping quality', free: false, keyUrl: 'https://brave.com/search/api/' },
+      { id: 'openweathermap',name: 'OpenWeatherMap',  icon: `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="10" r="3"/><path d="M12 9a3 3 0 00-5.83-1.03A3 3 0 006 10"/></svg>`, desc: 'Current weather, forecasts, historical', free: false, keyUrl: 'https://openweathermap.org/api' },
+      { id: 'mapbox',        name: 'Mapbox',          icon: window.GeoAnalytica?.icon?.expand || 'MB', desc: 'Premium map tiles, geocoding', free: false, keyUrl: 'https://account.mapbox.com/' },
     ];
 
     let connectedKeys = [];
@@ -541,8 +541,8 @@ const AlertsPage = {
             <div style="font-size:10px;color:var(--text-muted);margin-top:6px;display:flex;gap:12px;">
               <span>Last checked: ${GeoAnalytica.formatRelativeTime(a.last_checked_at) || 'Never'}</span>
               <span>Triggered: ${a.trigger_count} times</span>
-              ${a.notify_email ? '<span>📧 Email</span>' : ''}
-              ${a.notify_slack ? '<span>💬 Slack</span>' : ''}
+              ${a.notify_email ? '<span>Email</span>' : ''}
+              ${a.notify_slack ? '<span>Slack</span>' : ''}
             </div>
           </div>
           <div class="alert-actions">
@@ -554,6 +554,48 @@ const AlertsPage = {
           </div>
         </div>
       `).join('');
+
+      // Fetch and display global alert history
+      if (histBody) {
+        try {
+          const histories = await Promise.all(
+            alerts.map(async (a) => {
+              try {
+                const hist = await API.alerts.history(a.id);
+                return hist.map(h => ({ ...h, alertName: a.name }));
+              } catch (_) {
+                return [];
+              }
+            })
+          );
+          const allHist = histories.flat().sort((x, y) => new Date(y.triggered_at) - new Date(x.triggered_at)).slice(0, 50);
+          if (allHist.length) {
+            histBody.innerHTML = allHist.map(h => `
+              <tr style="border-bottom:1px solid var(--border-color)">
+                <td style="padding:12px 16px;font-size:var(--text-sm);font-weight:600">${h.alertName}</td>
+                <td style="padding:12px 16px;font-size:var(--text-sm);color:var(--text-muted)">${GeoAnalytica.formatDateTime(h.triggered_at)}</td>
+                <td style="padding:12px 16px;font-size:var(--text-sm)">${GeoAnalytica.formatNumber(h.value_at_trigger)}</td>
+                <td style="padding:12px 16px;font-size:var(--text-sm)">
+                  ${(h.channels_notified || []).map(c => `<span class="badge badge-muted" style="margin-right:4px">${c}</span>`).join('') || 'None'}
+                </td>
+                <td style="padding:12px 16px;font-size:var(--text-sm)">
+                  <span class="badge ${h.notification_status === 'sent' ? 'badge-green' : 'badge-red'}">${h.notification_status}</span>
+                </td>
+              </tr>
+            `).join('');
+          } else {
+            histBody.innerHTML = `
+              <tr>
+                <td colspan="5" style="padding:24px;text-align:center;color:var(--text-muted);font-size:var(--text-sm)">
+                  No alert history yet
+                </td>
+              </tr>
+            `;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
     } catch (e) {
       container.innerHTML = `<div class="notice notice-error">Failed to load alerts: ${e.message}</div>`;
     }

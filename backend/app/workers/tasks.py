@@ -158,7 +158,7 @@ async def _run_query_pipeline(query_id: str):
 
             async def progress_cb(entity_name, field, done, total):
                 nonlocal done_count
-                # NOTE: done_count is incremented by the caller before invoking this callback
+                done_count = done
                 percent = 22 + int((done_count / max(total_fetch, 1)) * 43)  # 22-65%
 
                 # Broadcast country data point for live map coloring

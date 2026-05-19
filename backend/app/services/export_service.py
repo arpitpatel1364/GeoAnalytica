@@ -235,7 +235,7 @@ class ExportService:
 
         # ── Cover Page ──
         story.append(Spacer(1, 1 * cm))
-        story.append(Paragraph("⬡ GeoAnalytica", title_style))
+        story.append(Paragraph("GeoAnalytica", title_style))
         story.append(Paragraph("Global data, decoded.", subtitle_style))
         story.append(HRFlowable(width="100%", thickness=1, color=accent_blue))
         story.append(Spacer(1, 0.5 * cm))
@@ -285,7 +285,7 @@ class ExportService:
             story.append(Spacer(1, 0.3 * cm))
             story.append(Paragraph("Anomalies & Outliers", heading_style))
             for anomaly in result.anomalies:
-                story.append(Paragraph(f"⚠ {anomaly}", bullet_style))
+                story.append(Paragraph(f"[Warning] {anomaly}", bullet_style))
 
         story.append(PageBreak())
 

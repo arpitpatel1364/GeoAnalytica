@@ -49,7 +49,7 @@ const ResultsSummary = {
           </h4>
           ${anomalies.map(a => `
             <div class="anomaly-item">
-              <span class="anomaly-icon">⚠</span>
+              <span class="anomaly-icon" style="display:inline-block;width:14px;height:14px;vertical-align:middle;margin-right:6px;color:var(--status-danger)"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2L14 13H2L8 2z"/><path d="M8 7v3M8 11.5v.5"/></svg></span>
               <span>${a}</span>
             </div>
           `).join('')}

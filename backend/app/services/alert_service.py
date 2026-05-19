@@ -62,7 +62,7 @@ class AlertService:
             <html><body style="font-family: -apple-system, sans-serif; background: #0d1117; color: #e6edf3; padding: 24px;">
             <div style="max-width: 560px; margin: 0 auto; background: #161b22; border-radius: 12px; padding: 32px; border: 1px solid #30363d;">
               <div style="display: flex; align-items: center; margin-bottom: 24px;">
-                <span style="font-size: 24px; font-weight: 700; color: #2f81f7;">⬡ GeoAnalytica</span>
+                <span style="font-size: 24px; font-weight: 700; color: #2f81f7;">GeoAnalytica</span>
               </div>
               <h2 style="color: #f85149; margin: 0 0 16px;">Alert Triggered: {alert_name}</h2>
               <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
@@ -107,7 +107,7 @@ class AlertService:
     ) -> bool:
         try:
             payload = {
-                "text": f"🚨 *GeoAnalytica Alert: {alert_name}*",
+                "text": f"[ALERT] *GeoAnalytica Alert: {alert_name}*",
                 "attachments": [
                     {
                         "color": "#f85149",
