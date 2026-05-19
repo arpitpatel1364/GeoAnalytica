@@ -1,4 +1,4 @@
-⬡ GeoAnalytica
+# ⬡ GeoAnalytica
 ### Global data, decoded.
 
 A full-stack geospatial analysis platform that lets you query global data in plain English, visualize it on an interactive world map, and export AI-powered reports — with zero API keys required on the free tier.
