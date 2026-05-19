@@ -10,7 +10,15 @@ from app.config import settings
 
 logger = structlog.get_logger()
 
-client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+client = None
+
+def get_anthropic_client():
+    global client
+    if client is None:
+        if not settings.ANTHROPIC_API_KEY:
+            raise ValueError("Anthropic API key is not configured")
+        client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+    return client
 
 SYSTEM_PROMPT = """You are a geospatial data query parser. The user will describe what data they want to analyze.
 You must parse their request and return ONLY a valid JSON object — no preamble, no markdown, no explanation.
@@ -127,13 +135,144 @@ def _extract_json(text: str) -> Optional[dict]:
     return None
 
 
+def heuristic_parse(instruction: str) -> ParsedQuerySpec:
+    text = instruction.lower()
+
+    # 1. Parse Fields
+    supported_fields = [
+        "gdp_usd", "gdp_per_capita", "gdp_growth_rate", "inflation_rate", "unemployment_rate",
+        "current_account_balance_pct_gdp", "government_debt_pct_gdp", "trade_balance_usd",
+        "fdi_inflows_usd", "exchange_rate_usd", "population", "population_growth_rate",
+        "life_expectancy", "literacy_rate", "hdi_index", "urbanization_rate",
+        "co2_emissions_per_capita", "temperature_anomaly", "renewable_energy_share",
+        "political_stability_index", "news_sentiment_score", "stock_index_level"
+    ]
+
+    found_fields = []
+    # Check exact support first
+    for f in supported_fields:
+        if f in text:
+            found_fields.append(f)
+
+    # Check synonyms if none found
+    if not found_fields:
+        if "gdp per capita" in text:
+            found_fields.append("gdp_per_capita")
+        elif "gdp growth" in text:
+            found_fields.append("gdp_growth_rate")
+        elif "gdp" in text:
+            found_fields.append("gdp_usd")
+        if "inflation" in text:
+            found_fields.append("inflation_rate")
+        if "unemployment" in text:
+            found_fields.append("unemployment_rate")
+        if "population growth" in text:
+            found_fields.append("population_growth_rate")
+        elif "population" in text:
+            found_fields.append("population")
+        if "life expectancy" in text:
+            found_fields.append("life_expectancy")
+        if "literacy" in text:
+            found_fields.append("literacy_rate")
+        if "hdi" in text:
+            found_fields.append("hdi_index")
+        if "co2" in text:
+            found_fields.append("co2_emissions_per_capita")
+        if "temperature" in text:
+            found_fields.append("temperature_anomaly")
+        if "renewable" in text:
+            found_fields.append("renewable_energy_share")
+        if "political" in text:
+            found_fields.append("political_stability_index")
+        if "sentiment" in text:
+            found_fields.append("news_sentiment_score")
+        if "stock" in text:
+            found_fields.append("stock_index_level")
+
+    if not found_fields:
+        found_fields = ["gdp_per_capita"]
+
+    # 2. Parse Scope & Entities
+    entity_scope = "world"
+    entities = []
+
+    scopes = ["world", "g7", "g20", "brics", "eu", "africa", "asia", "sea", "middle_east", "americas"]
+    for s in scopes:
+        if f"for {s}" in text or f"scope={s}" in text:
+            entity_scope = s
+            break
+
+    # Check if there is specific countries like US, CA, etc.
+    # Pattern: Analyze ... for US, CA, FR from ...
+    match_specific = re.search(r"for\s+([^from]+)\s+from", instruction, re.IGNORECASE)
+    if match_specific:
+        entity_str = match_specific.group(1).strip()
+        # Remove any parentheses
+        entity_str = re.sub(r"[\(\)]", "", entity_str)
+        # Split by comma or semicolon
+        parsed_entities = [e.strip() for e in re.split(r"[,;]", entity_str) if e.strip()]
+        # If the parsed entities don't match standard group scopes, set scope to specific
+        if parsed_entities and not any(pe.lower() in scopes for pe in parsed_entities):
+            entity_scope = "specific"
+            entities = parsed_entities
+
+    # 3. Parse Time Range
+    time_start = "2018"
+    time_end = "2023"
+    match_years = re.search(r"from\s+(\d{4})\s+to\s+(\d{4})", instruction, re.IGNORECASE)
+    if match_years:
+        time_start = match_years.group(1)
+        time_end = match_years.group(2)
+    else:
+        # fallback search for any two 4 digit years
+        years = re.findall(r"\b(20\d{2}|19\d{2})\b", instruction)
+        if len(years) >= 2:
+            time_start = min(years)
+            time_end = max(years)
+
+    # 4. Parse Granularity
+    granularity = "annual"
+    if "quarterly" in text:
+        granularity = "quarterly"
+    elif "monthly" in text:
+        granularity = "monthly"
+
+    # 5. Parse Filters
+    filters = []
+    filter_matches = re.finditer(r"(?:filter:|and)\s+([\w_]+)\s+(gt|lt|gte|lte|eq|neq)\s+([\d\.]+)", text, re.IGNORECASE)
+    for fm in filter_matches:
+        f_field = fm.group(1)
+        f_op = fm.group(2)
+        try:
+            f_val = float(fm.group(3))
+            filters.append(ParsedFilter(field=f_field, operator=f_op, value=f_val))
+        except ValueError:
+            pass
+
+    return ParsedQuerySpec(
+        fields=found_fields,
+        entities=entities,
+        entity_scope=entity_scope,
+        time_start=time_start,
+        time_end=time_end,
+        granularity=granularity,
+        filters=filters,
+        error=False
+    )
+
+
 async def parse_instruction(instruction_text: str) -> ParsedQuerySpec:
     """
     Parse a natural language query instruction into a structured ParsedQuerySpec.
-    Never raises — returns error spec on failure.
+    Falls back gracefully to heuristic parsing if API keys are missing or invalid.
     """
+    if not settings.ANTHROPIC_API_KEY:
+        logger.info("query_parser_using_fallback", reason="no_api_key")
+        return heuristic_parse(instruction_text)
+
     try:
-        response = await client.messages.create(
+        anthropic_client = get_anthropic_client()
+        response = await anthropic_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1000,
             system=SYSTEM_PROMPT,
@@ -145,10 +284,7 @@ async def parse_instruction(instruction_text: str) -> ParsedQuerySpec:
 
         if not parsed_json:
             logger.error("query_parser_json_extract_failed", raw=raw_text[:200])
-            return ParsedQuerySpec(
-                error=True,
-                error_message="Failed to extract JSON from Claude response",
-            )
+            return heuristic_parse(instruction_text)
 
         # Build spec
         filters = []
@@ -189,8 +325,5 @@ async def parse_instruction(instruction_text: str) -> ParsedQuerySpec:
         return spec
 
     except Exception as e:
-        logger.error("query_parser_exception", error=str(e))
-        return ParsedQuerySpec(
-            error=True,
-            error_message=f"Query parser error: {str(e)}",
-        )
+        logger.warning("query_parser_exception_falling_back", error=str(e))
+        return heuristic_parse(instruction_text)

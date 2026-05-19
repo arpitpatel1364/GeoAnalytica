@@ -7,46 +7,28 @@ from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from structlog import get_logger
 
 from app.services.auth_service import decode_access_token
+from app.services.cache_service import get_redis
 
 logger = get_logger()
 
 router = APIRouter()
 
-# Global connection registry: query_id -> set of WebSocket connections
-_connections: Dict[str, Set[WebSocket]] = {}
-
 
 class ConnectionManager:
-    def __init__(self):
-        self.active: Dict[str, Set[WebSocket]] = {}
-
     async def connect(self, query_id: str, websocket: WebSocket):
-        await websocket.accept()
-        if query_id not in self.active:
-            self.active[query_id] = set()
-        self.active[query_id].add(websocket)
-        logger.info("ws_connected", query_id=query_id, total=len(self.active[query_id]))
+        logger.info("ws_connected_legacy", query_id=query_id)
 
     def disconnect(self, query_id: str, websocket: WebSocket):
-        if query_id in self.active:
-            self.active[query_id].discard(websocket)
-            if not self.active[query_id]:
-                del self.active[query_id]
-        logger.info("ws_disconnected", query_id=query_id)
+        logger.info("ws_disconnected_legacy", query_id=query_id)
 
     async def send(self, query_id: str, message: dict):
-        """Send a message to all connections watching a given query."""
-        if query_id not in self.active:
-            return
-        dead = set()
-        payload = json.dumps(message)
-        for ws in self.active[query_id]:
-            try:
-                await ws.send_text(payload)
-            except Exception:
-                dead.add(ws)
-        for ws in dead:
-            self.active[query_id].discard(ws)
+        """Send a message to all connections watching a given query via Redis Pub/Sub."""
+        try:
+            r = await get_redis()
+            payload = json.dumps(message)
+            await r.publish(f"query:{query_id}", payload)
+        except Exception as e:
+            logger.error("ws_redis_publish_error", query_id=query_id, error=str(e))
 
     async def broadcast_progress(self, query_id: str, **kwargs):
         await self.send(query_id, {"type": "progress", **kwargs})
@@ -94,7 +76,28 @@ async def websocket_endpoint(
         await websocket.close(code=4002, reason="Invalid query ID")
         return
 
-    await manager.connect(query_id, websocket)
+    await websocket.accept()
+
+    r = await get_redis()
+    pubsub = r.pubsub()
+    await pubsub.subscribe(f"query:{query_id}")
+
+    # Listen to redis pubsub in a background task
+    async def pubsub_listener():
+        try:
+            async for message in pubsub.listen():
+                if message["type"] == "message":
+                    await websocket.send_text(message["data"])
+        except Exception as e:
+            logger.warning("pubsub_listener_error", query_id=query_id, error=str(e))
+        finally:
+            try:
+                await pubsub.unsubscribe(f"query:{query_id}")
+            except Exception:
+                pass
+
+    listener_task = asyncio.create_task(pubsub_listener())
+
     try:
         while True:
             # Keep alive — client can send pings
@@ -111,4 +114,13 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         pass
     finally:
-        manager.disconnect(query_id, websocket)
+        listener_task.cancel()
+        try:
+            await listener_task
+        except asyncio.CancelledError:
+            pass
+        try:
+            await pubsub.close()
+        except Exception:
+            pass
+

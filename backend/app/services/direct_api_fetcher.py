@@ -369,3 +369,34 @@ class DirectAPIFetcher:
                 )
                 for yr, count in yearly.items()
             ]
+
+    async def _fetch_openweathermap(
+        self, api_key: str, entity: str, field_name: str, years: List[int]
+    ) -> List[DirectAPIResult]:
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={entity}&appid={api_key}&units=metric"
+        try:
+            async with httpx.AsyncClient(timeout=15) as client:
+                r = await client.get(url)
+                if r.status_code != 200:
+                    return []
+                data = r.json()
+                temp = data.get("main", {}).get("temp")
+                if temp is None:
+                    return []
+                return [
+                    DirectAPIResult(
+                        entity=entity,
+                        metric=field_name,
+                        timestamp=str(yr),
+                        value=float(temp),
+                        source_name="OpenWeatherMap",
+                        source_url=url,
+                        confidence=0.87,
+                        is_null=False,
+                    )
+                    for yr in years
+                ]
+        except Exception as e:
+            logger.warning("openweathermap_fetch_failed", error=str(e))
+            return []
+

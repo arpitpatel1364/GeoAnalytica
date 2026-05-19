@@ -10,8 +10,15 @@ from anthropic import AsyncAnthropic
 
 from app.config import settings
 
-logger = structlog.get_logger()
-client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+client = None
+
+def get_anthropic_client():
+    global client
+    if client is None:
+        if not settings.ANTHROPIC_API_KEY:
+            raise ValueError("Anthropic API key is not configured")
+        client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+    return client
 
 SYSTEM_PROMPT = """You are a senior data analyst specializing in geopolitical and economic data.
 You will receive a geospatial dataset analysis and must produce a structured narrative report.
@@ -131,7 +138,8 @@ async def generate_narrative(
     try:
         context = _build_context(analysis_result, original_instruction)
 
-        response = await client.messages.create(
+        anthropic_client = get_anthropic_client()
+        response = await anthropic_client.messages.create(
             model="claude-3-5-sonnet-20241022",
             max_tokens=1500,
             system=SYSTEM_PROMPT,
